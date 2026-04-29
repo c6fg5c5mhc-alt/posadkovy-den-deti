@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Posádkový deň detí 2026 · 51. krídlo Prešov</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#B8A164;--gold-l:#D4BC82;
+  --navy:#050F1E;--navy2:#0B1929;--navy3:#0F2035;
+  --red:#C0392B;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--navy);color:#fff;font-family:"Barlow",sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── HERO ── */
+#hero{height:100svh;min-height:600px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
+#starfield{position:absolute;inset:0;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:sh var(--d,3s) ease-in-out infinite alternate;}
+@keyframes sh{from{opacity:var(--a1,.05)}to{opacity:var(--a2,.4)}}
+#hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(5,15,30,1) 0%,rgba(5,15,30,.6) 50%,rgba(5,15,30,.2) 100%);pointer-events:none;}
+.hero-fg{position:relative;z-index:2;padding:0 1.5rem 2.75rem;}
+.h-unit{font-family:"Barlow Condensed",sans-serif;font-size:10px;letter-spacing:5px;color:rgba(184,161,100,.45);text-transform:uppercase;margin-bottom:1.25rem;opacity:0;animation:fu .8s .2s forwards;}
+.h-event{font-family:"Bebas Neue",sans-serif;font-size:clamp(50px,14vw,76px);letter-spacing:3px;line-height:.95;color:var(--gold-l);opacity:0;animation:fu .8s .4s forwards;}
+.h-event span{display:block;margin-top:.18em;}
+.h-city{font-family:"Barlow Condensed",sans-serif;font-size:clamp(15px,4vw,19px);font-weight:300;letter-spacing:9px;color:rgba(184,161,100,.35);text-transform:uppercase;margin-top:.5rem;opacity:0;animation:fu .8s .6s forwards;}
+.h-div{width:44px;height:.5px;background:var(--gold);margin:1.25rem 0;opacity:0;animation:fu .8s .75s forwards;}
+.h-date{font-family:"Bebas Neue",sans-serif;font-size:clamp(48px,13vw,74px);letter-spacing:2px;line-height:1;color:#fff;opacity:0;animation:fu .8s .9s forwards;}
+.h-time{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:300;letter-spacing:4px;color:rgba(255,255,255,.32);margin-top:.35rem;opacity:0;animation:fu .8s 1.05s forwards;}
+.h-scroll{position:absolute;bottom:1.5rem;right:1.5rem;z-index:3;font-family:"Barlow Condensed",sans-serif;font-size:8px;letter-spacing:3px;color:rgba(184,161,100,.28);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:7px;opacity:0;animation:fu .8s 1.8s forwards;}
+.chevron{width:9px;height:9px;border-right:.5px solid rgba(184,161,100,.3);border-bottom:.5px solid rgba(184,161,100,.3);transform:rotate(45deg);animation:bob 1.6s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translateY(3px)}}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Logo */
+.hero-logo{position:absolute;top:1.25rem;right:1.25rem;z-index:3;width:68px;opacity:0;animation:fu .8s 1.4s forwards;filter:drop-shadow(0 2px 12px rgba(0,0,0,.7));}
+
+/* Heli — real photo */
+@keyframes heli-fly{0%{transform:translateX(-220px);opacity:0}6%{opacity:1}90%{opacity:1}100%{transform:translateX(calc(100vw + 260px));opacity:0}}
+@keyframes heli-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes heli-glow{0%,100%{filter:brightness(1.05) drop-shadow(0 0 8px rgba(184,161,100,.2))}50%{filter:brightness(1.15) drop-shadow(0 0 14px rgba(184,161,100,.4))}}
+.heli{position:absolute;top:22%;left:0;z-index:3;pointer-events:none;animation:heli-fly 22s linear infinite;animation-delay:2s;}
+.heli-bob{animation:heli-bob .8s ease-in-out infinite;}
+.heli-img{height:100px;display:block;mix-blend-mode:screen;animation:heli-glow 2.5s ease-in-out infinite;filter:brightness(1.1) drop-shadow(0 0 10px rgba(184,161,100,.3));}
+
+/* ── SECTIONS ── */
+.sec{padding:2.5rem 1.5rem;border-top:.5px solid rgba(184,161,100,.1);}
+.sec-label{font-family:"Barlow Condensed",sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:.9rem;display:flex;align-items:center;gap:10px;}
+.sec-label::before{content:"";width:16px;height:.5px;background:var(--gold);display:block;}
+.sec-title{font-family:"Bebas Neue",sans-serif;font-size:30px;letter-spacing:2px;color:var(--gold-l);margin-bottom:.4rem;}
+.sec-body{font-size:13px;line-height:1.75;color:rgba(255,255,255,.42);font-weight:300;}
+
+/* Ground list */
+.ground-list{margin-top:1.25rem;display:flex;flex-direction:column;gap:1px;background:rgba(184,161,100,.07);}
+.ground-card{background:var(--navy2);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;text-decoration:none;color:inherit;}
+.ground-card:active{background:var(--navy3);}
+.ground-icon{width:44px;height:44px;border:.5px solid rgba(184,161,100,.28);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ground-type{font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:.15rem;}
+.ground-name{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.88);}
+.ground-desc{font-size:12px;color:rgba(255,255,255,.35);margin-top:.2rem;line-height:1.5;font-weight:300;}
+
+/* Map container */
+.map-wrap{position:relative;margin-top:1.25rem;}
+#leaflet-map{width:100%;height:420px;border:.5px solid rgba(184,161,100,.18);border-radius:3px;overflow:hidden;transition:all .3s;}
+#leaflet-map.is-fullscreen{position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:9999!important;border-radius:0!important;border:none!important;}
+.leaflet-tile-pane{filter:brightness(.45) saturate(.3) hue-rotate(190deg);}
+.leaflet-container{background:#050F1E;}
+
+/* Fullscreen btn */
+#map-fs-btn{position:absolute;bottom:36px;right:8px;z-index:900;width:32px;height:32px;background:rgba(5,15,30,.88);border:.5px solid rgba(184,161,100,.35);border-radius:3px;color:var(--gold);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);}
+#map-fs-btn:active{background:rgba(5,15,30,1);}
+#map-fs-close{display:none;position:fixed;top:12px;right:12px;z-index:10000;width:36px;height:36px;background:rgba(5,15,30,.92);border:.5px solid rgba(184,161,100,.4);border-radius:3px;color:var(--gold);font-size:18px;align-items:center;justify-content:center;cursor:pointer;}
+#map-fs-close.visible{display:flex;}
+
+/* Map peek bar */
+.map-peek{display:flex;gap:10px;overflow-x:auto;padding:8px 0 4px;scrollbar-width:none;margin-top:6px;}
+.map-peek::-webkit-scrollbar{display:none;}
+.mp-item{display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:"Barlow Condensed",sans-serif;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.4);flex-shrink:0;}
+.mp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* Map detail panel */
+.map-detail{overflow:hidden;max-height:0;transition:max-height .38s cubic-bezier(.25,.46,.45,.94);}
+.map-detail.open{max-height:400px;}
+.md-inner{background:var(--navy3);border-top:.5px solid rgba(184,161,100,.2);padding:1.25rem 1.5rem;margin-top:.5rem;}
+.md-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;}
+.md-title{font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1.3;}
+.md-close{background:none;border:.5px solid rgba(184,161,100,.3);color:var(--gold);width:26px;height:26px;border-radius:2px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.md-row{padding:.5rem 0;border-bottom:.5px solid rgba(184,161,100,.07);}
+.md-key{font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.28);}
+.md-val{font-size:13px;color:rgba(255,255,255,.82);margin-top:2px;font-weight:300;}
+.md-note{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;line-height:1.5;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;border:.5px solid rgba(184,161,100,.4);color:var(--gold);border-radius:2px;text-decoration:none;}
+.warn-tag{display:inline-block;margin-top:6px;font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;background:rgba(192,57,43,.12);color:#E07060;border-radius:2px;border:.5px solid rgba(192,57,43,.3);}
+
+/* Parking scroll */
+.park-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:1.25rem -1.5rem 0;padding:0 1.5rem;}
+.park-scroll::-webkit-scrollbar{display:none;}
+.park-track{display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;padding-bottom:.5rem;}
+.park-card{background:var(--navy3);border:.5px solid rgba(184,161,100,.18);border-radius:3px;padding:1.1rem;flex:0 0 260px;width:260px;display:flex;flex-direction:column;}
+.pk-hdr{display:flex;align-items:center;gap:8px;margin-bottom:.6rem;}
+.pk-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pk-lbl{font-family:"Barlow Condensed",sans-serif;font-size:9px;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);}
+.pk-name{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:600;color:rgba(255,255,255,.88);margin-bottom:.35rem;}
+.pk-sub{font-size:12px;color:rgba(255,255,255,.38);line-height:1.55;font-weight:300;flex:1;}
+.pk-badge{display:inline-block;margin-top:.65rem;font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;background:rgba(184,161,100,.1);color:var(--gold);border-radius:2px;}
+.pk-nav{display:inline-flex;align-items:center;gap:5px;margin-top:.55rem;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:5px 10px;border:.5px solid rgba(184,161,100,.35);color:var(--gold);border-radius:2px;text-decoration:none;width:fit-content;}
+.scroll-hint{text-align:center;margin-top:.6rem;font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:2px;color:rgba(184,161,100,.28);text-transform:uppercase;}
+
+/* Warning box */
+.warn-box{background:rgba(192,57,43,.07);border:.5px solid rgba(192,57,43,.3);border-radius:3px;padding:1rem 1.25rem;margin-top:1.25rem;display:flex;gap:.9rem;align-items:flex-start;}
+.wb-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.wb-title{font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:600;color:#E07060;margin-bottom:.25rem;}
+.wb-body{font-size:12px;color:rgba(255,255,255,.38);line-height:1.6;font-weight:300;}
+
+/* Vstup cards */
+.vstup-list{display:flex;flex-direction:column;gap:1px;margin-top:1.25rem;background:rgba(184,161,100,.06);}
+.vstup-card{background:var(--navy2);padding:1rem 1.25rem;display:flex;gap:1rem;align-items:flex-start;}
+.vstup-num{width:38px;height:38px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1px;flex-shrink:0;margin-top:2px;}
+.vstup-title{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.88);margin-bottom:.2rem;}
+.vstup-sub{font-size:12px;color:rgba(255,255,255,.38);line-height:1.55;font-weight:300;}
+.vstup-tag{display:inline-block;margin-top:.45rem;font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px;border-radius:2px;}
+.vstup-nav{display:inline-flex;align-items:center;gap:5px;margin-top:.4rem;font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:4px 9px;border:.5px solid rgba(184,161,100,.35);color:var(--gold);border-radius:2px;text-decoration:none;width:fit-content;}
+
+/* MHD section */
+.mhd-card{background:var(--navy3);border:.5px solid rgba(58,158,216,.25);border-radius:3px;padding:1.25rem;margin-top:1.25rem;display:flex;gap:1rem;align-items:flex-start;}
+.mhd-icon{font-size:28px;flex-shrink:0;}
+.mhd-title{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:600;color:#64B5F6;margin-bottom:.3rem;}
+.mhd-sub{font-size:12px;color:rgba(255,255,255,.4);line-height:1.6;font-weight:300;}
+.mhd-schedule{margin-top:.9rem;display:flex;flex-wrap:wrap;gap:5px;}
+.mhd-time{font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:600;letter-spacing:.5px;padding:3px 8px;background:rgba(58,158,216,.12);border:.5px solid rgba(58,158,216,.3);color:#64B5F6;border-radius:2px;}
+
+/* Info cards */
+.info-cards{display:flex;flex-direction:column;gap:1px;margin-top:1.25rem;background:rgba(184,161,100,.06);}
+.info-card{background:var(--navy2);padding:1rem 1.25rem;display:flex;gap:.9rem;align-items:flex-start;}
+.info-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+.info-title{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);margin-bottom:.2rem;}
+.info-sub{font-size:12px;color:rgba(255,255,255,.38);line-height:1.55;font-weight:300;}
+
+/* Program */
+.prog-open{background:rgba(184,161,100,.07);border-radius:3px;padding:1rem 1.25rem;margin-top:1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:1rem;}
+.po-time{font-family:"Bebas Neue",sans-serif;font-size:30px;letter-spacing:2px;color:var(--gold-l);}
+.po-lbl{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.85);}
+.po-sub{font-size:11px;color:rgba(255,255,255,.32);margin-top:2px;font-weight:300;}
+.prog-item{display:flex;gap:14px;padding:.75rem 0;border-bottom:.5px solid rgba(184,161,100,.07);align-items:flex-start;}
+.pt{font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:600;color:var(--gold);letter-spacing:1px;min-width:44px;padding-top:1px;flex-shrink:0;}
+.pn{font-size:14px;font-weight:500;color:rgba(255,255,255,.88);line-height:1.3;}
+.pd{font-size:11px;color:rgba(255,255,255,.32);margin-top:2px;line-height:1.5;font-weight:300;}
+.ptag{font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px;border:.5px solid rgba(184,161,100,.28);color:var(--gold);border-radius:2px;margin-top:4px;display:inline-block;}
+.prog-hl{background:rgba(192,57,43,.07);border-left:2px solid #C0392B;padding-left:10px;margin-left:-10px;}
+.prog-hl .pt{color:#E05540;}
+
+/* Pills */
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:1rem;}
+.pill{display:flex;align-items:center;gap:5px;padding:.4rem .7rem;border:.5px solid rgba(184,161,100,.18);border-radius:2px;font-family:"Barlow Condensed",sans-serif;font-size:12px;color:rgba(255,255,255,.48);}
+.pill-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+
+/* Marker */
+.cust-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;font-family:"Barlow Condensed",sans-serif;border:2px solid rgba(255,255,255,.3);box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;}
+.park-tt{background:rgba(5,15,30,.92)!important;border:.5px solid rgba(76,175,80,.4)!important;color:rgba(76,175,80,.9)!important;font-family:"Barlow Condensed",sans-serif!important;font-size:11px!important;letter-spacing:1px!important;padding:4px 9px!important;border-radius:2px!important;box-shadow:none!important;}
+.park-tt::before{display:none!important;}
+
+footer{padding:2.5rem 1.5rem;border-top:.5px solid rgba(184,161,100,.1);text-align:center;}
+.ft{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:3px;color:rgba(184,161,100,.25);margin-bottom:.4rem;}
+.fs{font-family:"Barlow Condensed",sans-serif;font-size:9px;letter-spacing:2px;color:rgba(184,161,100,.15);text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section id="hero">
+
+  <!-- UH-60M Black Hawk — real photo, blends with dark background via screen mode -->
+  <div class="heli" aria-hidden="true">
+    <div class="heli-bob">
+      <img class="heli-img" src="uh60m.png" alt="UH-60M Black Hawk">
+    </div>
+  </div>
+
+  <!-- Znak 51. krídla Prešov -->
+  <img class="hero-logo" src="ZNAK51.png" alt="51. krídlo Prešov">
+
+  <div id="starfield"></div>
+  <div class="hero-fg">
+    <div class="h-unit">51. krídlo · Vzdušné sily OS SR · Prešov</div>
+    <div class="h-event">Posádkový<span>deň detí</span></div>
+    <div class="h-city">Letisko Prešov</div>
+    <div class="h-div"></div>
+    <div class="h-date">30. mája 2026</div>
+    <div class="h-time">08:00 &nbsp;–&nbsp; 14:00</div>
+  </div>
+  <div class="h-scroll"><span>scroll</span><div class="chevron"></div></div>
+</section>
+
+<!-- ═══════════════ STATICKÁ UKÁŽKA ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Statická ukážka</div>
+  <div class="sec-title">Technika naživo</div>
+  <div class="sec-body">Nahliadnite do kokpitu, preskúmajte výzbroj a stretnite sa s posádkami. Klepnite pre viac informácií.</div>
+  <div class="ground-list">
+    <a class="ground-card" href="https://sk.wikipedia.org/wiki/Sikorsky_UH-60_Black_Hawk" target="_blank" rel="noopener">
+      <div class="ground-icon">🚁</div>
+      <div style="flex:1;">
+        <div class="ground-type">Multifunkčný vrtuľník</div>
+        <div class="ground-name">UH-60M Black Hawk</div>
+        <div class="ground-desc">Nahliadnutie do kokpitu · americká výroba</div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--gold);opacity:.6;align-self:center;white-space:nowrap;">Wiki →</div>
+    </a>
+    <a class="ground-card" href="https://sk.wikipedia.org/wiki/Mil_Mi-17" target="_blank" rel="noopener">
+      <div class="ground-icon">🚁</div>
+      <div style="flex:1;">
+        <div class="ground-type">Transportný vrtuľník</div>
+        <div class="ground-name">Mi-17</div>
+        <div class="ground-desc">Ťažký transportný vrtuľník · ukážka + vzdušný výsadok</div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--gold);opacity:.6;align-self:center;white-space:nowrap;">Wiki →</div>
+    </a>
+    <a class="ground-card" href="https://sk.wikipedia.org/wiki/Leopard_2" target="_blank" rel="noopener">
+      <div class="ground-icon">🛡️</div>
+      <div style="flex:1;">
+        <div class="ground-type">Hlavný bojový tank</div>
+        <div class="ground-name">Leopard 2A4</div>
+        <div class="ground-desc">Nemecká výroba · v službe OS SR od 2023</div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--gold);opacity:.6;align-self:center;white-space:nowrap;">Wiki →</div>
+    </a>
+    <a class="ground-card" href="https://sk.wikipedia.org/wiki/ShKH_vz._77_Zuzana" target="_blank" rel="noopener">
+      <div class="ground-icon">💥</div>
+      <div style="flex:1;">
+        <div class="ground-type">Samohybná húfnica</div>
+        <div class="ground-name">ShKH vz. 77 Zuzana</div>
+        <div class="ground-desc">Slovenská výroba · 152 mm · statická ukážka</div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--gold);opacity:.6;align-self:center;white-space:nowrap;">Wiki →</div>
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════════ MAPA ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Mapa areálu</div>
+  <div class="sec-title">Orientácia</div>
+  <div class="sec-body">Klepnite na farebný bod pre detail a navigáciu. Lupu vpravo dole pre celú obrazovku.</div>
+  <div class="map-wrap">
+    <div id="leaflet-map"></div>
+    <button id="map-fs-btn" onclick="toggleMapFs()" title="Celá obrazovka">⛶</button>
+  </div>
+  <!-- Peek bar -->
+  <div class="map-peek">
+    <div class="mp-item"><div class="mp-dot" style="background:#E05540;"></div>Vstupy (2 · CP)</div>
+    <div class="mp-item"><div class="mp-dot" style="background:#4CAF50;"></div>Parkoviská (P1–P3)</div>
+    <div class="mp-item"><div class="mp-dot" style="background:#3A7EC0;"></div>Vojenské ukážky</div>
+    <div class="mp-item"><div class="mp-dot" style="background:#C040A0;"></div>Zábava pre deti</div>
+    <div class="mp-item"><div class="mp-dot" style="background:#64B5F6;"></div>MHD zastávka</div>
+    <div class="mp-item"><div class="mp-dot" style="background:#B8A164;"></div>Stánky / Merch</div>
+    <div class="mp-item"><div class="mp-dot" style="background:#20A0A0;"></div>Služby</div>
+  </div>
+  <div class="map-detail" id="map-detail">
+    <div class="md-inner" id="md-inner"></div>
+  </div>
+</section>
+<!-- Fullscreen close button (outside map section for z-index) -->
+<button id="map-fs-close" onclick="toggleMapFs()">✕</button>
+
+<!-- ═══════════════ KDE NECHAŤ AUTO ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Parkovanie</div>
+  <div class="sec-title">Kde nechať auto</div>
+  <div class="sec-body">Všetky parkoviská sú bezplatné. Premávku v okolí riadi Policajný zbor SR. Dbajte na dodržiavanie dopravného značenia a rýchlostných obmedzení.</div>
+
+  <!-- Warning box -->
+  <div class="warn-box">
+    <div class="wb-icon">⚠️</div>
+    <div>
+      <div class="wb-title">Dôležité upozornenie — plynulosť dopravy</div>
+      <div class="wb-body">Pri CTPark <strong style="color:rgba(255,255,255,.6);">neparkovať pri kruhovom objazde</strong> ani nenechávať vozidlá pri ceste — kruhový objazd musí zostať voľný pre MHD a chodcov. Pri štvorprúdovke začínajte parkovanie <strong style="color:rgba(255,255,255,.6);">od začiatku vyznačeného úseku</strong> (od letiska), nie od konca — predídete upchávke na štvorprúdovke. Využívajte chodník, rešpektujte pokyny polície a nestavajte na trávnatej ploche mimo vyznačenej zóny.</div>
+    </div>
+  </div>
+
+  <div class="park-scroll">
+    <div class="park-track">
+
+      <!-- P1 Trávnatá plocha -->
+      <div class="park-card">
+        <div class="pk-hdr"><div class="pk-dot" style="background:#4CAF50;"></div><div class="pk-lbl">Parkovisko č. 1</div></div>
+        <div class="pk-name">🌿 Trávnatá plocha pri letisku</div>
+        <div class="pk-sub">Trávnatá parkovacia plocha priamo pri areáli letiska. Má tri vstupy/výstupy označené na mape. Odporúčame pre návštevníkov prichádzajúcich od hlavnej cesty pozdĺž letiska.</div>
+        <div class="pk-badge">Bezplatné · Trávnatý povrch</div>
+      </div>
+
+      <!-- P2 Štvorprúdovka -->
+      <div class="park-card">
+        <div class="pk-hdr"><div class="pk-dot" style="background:#4CAF50;opacity:.75;"></div><div class="pk-lbl">Parkovisko č. 2</div></div>
+        <div class="pk-name">🛣 Pozdĺž štvorprúdovky</div>
+        <div class="pk-sub">Odstavný pruh pozdĺž hlavnej cesty. Parkujte od začiatku úseku (od letiska) smerom na Kapušany — nie od konca, aby nedošlo k upchatiu štvorprúdovky. Rešpektujte pokyny polície a dopravné značenie.</div>
+        <div class="pk-badge">Bezplatné · Veľká kapacita</div>
+      </div>
+
+      <!-- P3 CTPark -->
+      <div class="park-card">
+        <div class="pk-hdr"><div class="pk-dot" style="background:#4CAF50;opacity:.55;"></div><div class="pk-lbl">Parkovisko č. 3</div></div>
+        <div class="pk-name">🏭 CTPark Prešov North</div>
+        <div class="pk-sub">Priestranné parkovisko v logistickom parku. Pešo na Vstup CP Park ~8 min. <strong style="color:rgba(255,255,255,.55);">Neparkovať pri kruhovom objazde</strong> — kruhák musí ostať voľný pre MHD a chodcov. Využívajte len vyznačenú parkovaciu plochu.</div>
+        <div class="pk-badge">Bezplatné · Veľká kapacita</div>
+        <a class="pk-nav" href="https://maps.app.goo.gl/1WS3Xb6VqSihP1yf8" target="_blank">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 7-7 7M15 8H1" stroke="#B8A164" stroke-width="1.5" stroke-linecap="round"/></svg> Navigovať na CTPark
+        </a>
+      </div>
+
+    </div>
+  </div>
+  <div class="scroll-hint">← potiahnite →</div>
+</section>
+
+<!-- ═══════════════ MHD ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Doprava</div>
+  <div class="sec-title">Mestská hromadná doprava</div>
+  <div class="sec-body">Odporúčame prísť MHD — ušetríte čas hľadaním parkovacieho miesta a prispejete k plynulejšej doprave v okolí letiska.</div>
+  <div class="mhd-card">
+    <div class="mhd-icon">🚌</div>
+    <div style="flex:1;">
+      <div class="mhd-title">MHD Prešov → Vstup v smere od Prešova (Kapušany)</div>
+      <div class="mhd-sub">Počas Posádkového dňa detí autobus vyloží cestujúcich <strong style="color:rgba(255,255,255,.6);">priamo pri Vstupe v smere od Prešova (Kapušany)</strong>. Z autobusovej zastávky pokračujete pešo len niekoľko krokov k vchodu do areálu.</div>
+      <div style="margin-top:.75rem;font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(184,161,100,.55);">Odchody zo zastávky (každých 30 min)</div>
+      <div class="mhd-schedule">
+        <span class="mhd-time">07:30</span><span class="mhd-time">08:00</span><span class="mhd-time">08:30</span><span class="mhd-time">09:00</span><span class="mhd-time">09:30</span><span class="mhd-time">10:00</span><span class="mhd-time">10:30</span><span class="mhd-time">11:00</span><span class="mhd-time">11:30</span><span class="mhd-time">12:00</span><span class="mhd-time">12:30</span><span class="mhd-time">13:00</span><span class="mhd-time">13:30</span><span class="mhd-time">14:00</span><span class="mhd-time">14:30</span><span class="mhd-time">15:00</span><span class="mhd-time">15:30</span>
+      </div>
+      <a class="pk-nav" href="https://www.dpmk.sk" target="_blank" style="border-color:rgba(58,158,216,.35);color:#64B5F6;margin-top:.9rem;">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 7-7 7M15 8H1" stroke="#64B5F6" stroke-width="1.5" stroke-linecap="round"/></svg> Cestovné poriadky DPMK
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ VSTUPY ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Vstup na posádkový deň detí</div>
+  <div class="sec-title">Vstupné brány</div>
+  <div class="sec-body">Areál letiska má dva vstupné body pre návštevníkov. Každý vstup je <strong style="color:rgba(255,255,255,.6);">výhradne pre peších</strong>. Riaďte sa pokynmi usporiadateľskej služby.</div>
+
+  <!-- Warning — hlavná brána uzavretá -->
+  <div class="warn-box">
+    <div class="wb-icon">🚫</div>
+    <div>
+      <div class="wb-title">Hlavná brána 51. krídla Prešov — UZAVRETÁ pre verejnosť</div>
+      <div class="wb-body">Počas Posádkového dňa detí <strong style="color:rgba(255,255,255,.6);">nebude možný vstup hlavnou bránou 51. krídla Prešov</strong>. Do areálu sa dostanete výhradne cez vyznačené vchody — Vstup v smere od Prešova (Kapušany) alebo Vstup CP Park.</div>
+    </div>
+  </div>
+
+  <div class="vstup-list">
+
+    <div class="vstup-card">
+      <div class="vstup-num" style="background:rgba(224,112,48,.12);color:#E07030;border:.5px solid rgba(224,112,48,.28);">2</div>
+      <div>
+        <div class="vstup-title">Vstup v smere od Prešova — Kapušany</div>
+        <div class="vstup-sub">Vstup pre peších prichádzajúcich zo smeru Prešova (ul. Kapušianska). Počas podujatia tu zastavuje MHD — autobus vyloží cestujúcich priamo pri vchode. Vstup je výhradne peší.</div>
+        <span class="vstup-tag" style="background:rgba(58,158,216,.1);color:#64B5F6;border:.5px solid rgba(58,158,216,.25);">🚌 MHD zastávka pri vchode</span><br>
+        <span class="vstup-tag" style="background:rgba(192,57,43,.1);color:#E07060;border:.5px solid rgba(192,57,43,.25);">Len chodci</span>
+        <a class="vstup-nav" href="https://maps.app.goo.gl/T7x5Mj6mfqYQ4WRAA" target="_blank">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 7-7 7M15 8H1" stroke="#B8A164" stroke-width="1.5" stroke-linecap="round"/></svg> Zobraziť na mape
+        </a>
+      </div>
+    </div>
+
+    <div class="vstup-card">
+      <div class="vstup-num" style="background:rgba(224,144,32,.12);color:#E09020;border:.5px solid rgba(224,144,32,.28);">CP</div>
+      <div>
+        <div class="vstup-title">Vstup CP Park</div>
+        <div class="vstup-sub">Vstup pre návštevníkov prichádzajúcich z parkoviska CTPark Prešov North. Pešo z parkoviska cca 8 minút. Vstup je výhradne peší.</div>
+        <span class="vstup-tag" style="background:rgba(184,161,100,.08);color:var(--gold);border:.5px solid rgba(184,161,100,.2);">CTPark → pešo ~8 min</span><br>
+        <span class="vstup-tag" style="background:rgba(192,57,43,.1);color:#E07060;border:.5px solid rgba(192,57,43,.25);">Len chodci</span>
+        <a class="vstup-nav" href="https://maps.app.goo.gl/sb6unRnDQnysSW5j6" target="_blank">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 7-7 7M15 8H1" stroke="#B8A164" stroke-width="1.5" stroke-linecap="round"/></svg> Zobraziť na mape
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════ PROGRAM ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Program</div>
+  <div class="sec-title">Harmonogram dňa</div>
+  <div class="sec-body">Program je orientačný a môže sa zmeniť v závislosti od podmienok.</div>
+  <div class="prog-open">
+    <div class="po-time">08:00</div>
+    <div><div class="po-lbl">Otvorenie brán</div><div class="po-sub">Príchod návštevníkov</div></div>
+  </div>
+  <div class="prog-item"><div class="pt">09:00</div><div><div class="pn">Oficiálne zahájenie</div><div class="pd">Posádkového dňa detí v 51. krídle Prešov</div><div class="ptag">Ceremoniál</div></div></div>
+  <div class="prog-item"><div class="pt">09:05</div><div><div class="pn">Prelet vrtuľníkov</div><div class="ptag">Letecký program</div></div></div>
+  <div class="prog-item"><div class="pt">09:10</div><div><div class="pn">Vzdušný výsadok z Mi-17M</div><div class="ptag">Výsadok</div></div></div>
+  <div class="prog-item"><div class="pt">09:20</div><div><div class="pn">Ukážka výcviku psov</div><div class="pd">51. k Prešov</div><div class="ptag">Špeciálne sily</div></div></div>
+  <div class="prog-item"><div class="pt">09:40</div><div><div class="pn">Ukážka skupinového letu — Košice</div><div class="ptag">Civilné letectvo</div></div></div>
+  <div class="prog-item prog-hl"><div class="pt">10:00</div><div><div class="pn">Ukážka boja zblízka</div><div class="pd">sebaobrana, weapon handling · Stanovište C</div><div class="ptag">Výcvik</div></div></div>
+  <div class="prog-item"><div class="pt">10:20</div><div><div class="pn">Dynamická ukážka letu L-410</div><div class="ptag">Letecký program</div></div></div>
+  <div class="prog-item"><div class="pt">10:35</div><div><div class="pn">Dynamická ukážka letu vrtuľníka</div><div class="ptag">Letecký program</div></div></div>
+  <div class="prog-item prog-hl"><div class="pt">10:50</div><div><div class="pn">Fastrope &amp; Taktický výsadok</div><div class="pd">M240H + ukážka Vojenskej polície · Stanovište C</div><div class="ptag">Hlavný program</div></div></div>
+  <div class="prog-item"><div class="pt">11:20</div><div><div class="pn">Letecké ukážky — Aeroklub Prešov</div><div class="ptag">Civilné letectvo</div></div></div>
+  <div class="prog-item prog-hl"><div class="pt">11:35</div><div><div class="pn">Ukážka výcviku psov</div><div class="pd">51. k Prešov · Stanovište C</div><div class="ptag">Špeciálne sily</div></div></div>
+  <div class="prog-item"><div class="pt">11:50</div><div><div class="pn">Ukážka hasenia požiaru vrtuľníkom</div><div class="ptag">Záchranári</div></div></div>
+  <div class="prog-item prog-hl"><div class="pt">12:05</div><div><div class="pn">Ukážka boja zblízka</div><div class="pd">sebaobrana, weapon handling · Stanovište C</div><div class="ptag">Výcvik</div></div></div>
+  <div class="prog-item"><div class="pt">12:20</div><div><div class="pn">Dynamická ukážka vrtuľníka</div><div class="ptag">Letecký program</div></div></div>
+  <div class="prog-item"><div class="pt">12:35</div><div><div class="pn">Letecké ukážky — Aeroklub Prešov</div><div class="ptag">Civilné letectvo</div></div></div>
+  <div class="prog-item"><div class="pt">12:50</div><div><div class="pn">Vzdušný výsadok z UH-60M</div><div class="ptag">Výsadok</div></div></div>
+  <div class="prog-item prog-hl"><div class="pt">13:00</div><div><div class="pn">Penová šou 🎊</div><div class="pd">Doneste náhradné oblečenie! · Stanovište C</div><div class="ptag">Zábava pre deti</div></div></div>
+  <div class="prog-item"><div class="pt">14:00</div><div><div class="pn">Ukončenie PDD</div><div class="pd">Záverečný príhovor, odchod návštevníkov</div><div class="ptag">Záver</div></div></div>
+</section>
+
+<!-- ═══════════════ INFO ═══════════════ -->
+<section class="sec">
+  <div class="sec-label">Dôležité info</div>
+  <div class="sec-title">Pred príchodom</div>
+  <div class="pills">
+    <div class="pill"><div class="pill-dot"></div>Vstup voľný</div>
+    <div class="pill"><div class="pill-dot"></div>Pre celú rodinu</div>
+    <div class="pill"><div class="pill-dot"></div>Drony zakázané</div>
+    <div class="pill"><div class="pill-dot"></div>Foto povolené</div>
+    <div class="pill"><div class="pill-dot"></div>Zvieratá nie</div>
+    <div class="pill"><div class="pill-dot"></div>WC na mieste</div>
+    <div class="pill"><div class="pill-dot"></div>Náhradné oblečenie (penová šou)</div>
+  </div>
+</section>
+
+<footer>
+  <img src="ZNAK51.png" alt="51. krídlo Prešov" style="width:36px;opacity:.15;margin-bottom:1rem;filter:grayscale(1);">
+  <div class="ft">51. KRÍDLO PREŠOV</div>
+  <div class="fs">Posádkový deň detí · 30. mája 2026 · 08:00 – 14:00</div>
+  <div class="fs" style="margin-top:.4rem;opacity:.5;">Informácie sú orientačné a môžu sa zmeniť</div>
+</footer>
+
+<script>
+(function(){
+  var s=document.createElement("script");
+  s.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  s.onload=function(){initMap();};
+  document.head.appendChild(s);
+})();
+
+/* Stars */
+const sf=document.getElementById("starfield");
+for(let i=0;i<62;i++){const s=document.createElement("div");s.className="star";const z=Math.random()*1.5+.4;s.style.cssText=`width:${z}px;height:${z}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*5}s;--a1:${.04+Math.random()*.08};--a2:${.2+Math.random()*.35};`;sf.appendChild(s);}
+
+/* Map fullscreen */
+function toggleMapFs(){
+  const m=document.getElementById("leaflet-map");
+  const btn=document.getElementById("map-fs-close");
+  m.classList.toggle("is-fullscreen");
+  btn.classList.toggle("visible");
+  if(window._leafMap) setTimeout(()=>window._leafMap.invalidateSize(),100);
+}
+
+let pins={};
+let active=null;
+
+function geo2ll(arr){return arr.map(c=>[c[1],c[0]]);}
+
+function initMap(){
+  const map=L.map("leaflet-map",{center:[49.029,21.2965],zoom:14,zoomControl:true,attributionControl:false});
+  window._leafMap=map;
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+
+  function mkIcon(color,label,sz=28){
+    return L.divIcon({className:"",html:`<div class="cust-marker" style="width:${sz}px;height:${sz}px;background:${color};font-size:${Math.round(sz*.33)}px;color:#fff;">${label}</div>`,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+  }
+
+  pins={
+    v1:{lat:49.0247820,lng:21.2865310,color:"#666",label:"⛔",title:"Hlavná brána — UZAVRETÁ",
+      rows:[{k:"Status",v:"Uzavretá pre verejnosť počas PDD"},{k:"Poznámka",v:"Vstup nie je možný touto bránou. Využite Vstup v smere od Prešova (Kapušany) alebo Vstup CP Park."}],
+      warn:"Vstup zakázaný"},
+    v2:{lat:49.0281820,lng:21.2944650,color:"#E07030",label:"2",title:"Vstup v smere od Prešova — Kapušany",warn:"Len chodci",
+      rows:[{k:"Typ",v:"Vstup pre chodcov"},{k:"Uzavretý pre vozidlá",v:"Áno"},{k:"MHD",v:"Autobus zastavuje priamo pri vchode · 07:30–15:30 každých 30 min"},{k:"Vzdialenosť od areálu",v:"Priamo pri vchode"}],
+      link:"https://maps.app.goo.gl/T7x5Mj6mfqYQ4WRAA",linkLabel:"Zobraziť na mape"},
+    v3:{lat:49.0328190,lng:21.3063820,color:"#E09020",label:"CP",title:"Vstup CP Park",
+      rows:[{k:"Typ",v:"Vstup pre chodcov prichádzajúcich z CTPark"},{k:"Pre chodcov",v:"Áno"},{k:"Vzdialenosť z parkoviska",v:"Pešo cca 8 min"},{k:"Poznámka",v:"Riaďte sa pokynmi usporiadateľov"}]},
+    zabavka:{lat:49.0284070,lng:21.2991430,color:"#C040A0",label:"🏰",title:"Skákacie hrady",
+      rows:[{k:"Prevádzkovateľ",v:"Zábavka skákacie hrady Prešov"},{k:"Vstup",v:"Bezplatný, pre celú rodinu"}]},
+    malovanie:{lat:49.0307160,lng:21.3022650,color:"#C040A0",label:"🎨",title:"Malovanie na tvár",
+      rows:[{k:"Aktivita",v:"Malovanie na tvár pre deti"},{k:"Vstup",v:"Bezplatný"}]},
+    penova:{lat:49.0296520,lng:21.3016590,color:"#C0392B",label:"🎊",title:"Penová šou — 13:00",
+      rows:[{k:"Čas",v:"13:00"},{k:"Upozornenie",v:"Doneste náhradné oblečenie pre deti!",n:"Deti sa poriadne namočia — odporúčame rezervné prezlečenie"}]},
+    airsoft:{lat:49.0307900,lng:21.3024340,color:"#7040B0",label:"🎯",title:"Airsoft",
+      rows:[{k:"Aktivita",v:"Airsoft — ukážka a zóna"},{k:"Vek",v:"Vhodné pre staršie deti a dospelých"}]},
+    running:{lat:49.0299990,lng:21.3005380,color:"#20A060",label:"🏃",title:"Prešov Running — preteky pre deti",
+      rows:[{k:"Organizátor",v:"Prešov Running"},{k:"Typ",v:"Bežecké preteky pre deti"},{k:"Prihlásenie",v:"Na mieste počas dňa"}]},
+    stanky:{lat:49.0284669,lng:21.2998295,color:"#B8A164",label:"🛍",title:"Stánky — predaj drobností",
+      rows:[{k:"Typ",v:"Stánkový predaj drobností a suvenírov"},{k:"Platba",v:"Odporúčame mať hotovosť"}]},
+    merch:{lat:49.0306300,lng:21.3019620,color:"#B8A164",label:"🎖",title:"Merch 51. krídla Prešov",
+      rows:[{k:"Typ",v:"Predaj oficiálneho merchandisu 51. krídla Prešov"},{k:"Platba",v:"Odporúčame mať hotovosť"}]},
+    ukazky:{lat:49.0297560,lng:21.3011630,color:"#3A7EC0",label:"⚔",title:"Ukážky — psíci & sebaobrana",
+      rows:[{k:"Program",v:"Ukážka výcviku psov, sebaobrana, weapon handling"},{k:"Časy",v:"10:00 · 11:35 · 12:05"},{k:"Miesto",v:"Stanovište C"}]},
+    vetrony:{lat:49.0294060,lng:21.3010690,color:"#3A7EC0",label:"✈",title:"Modely vetroňov",
+      rows:[{k:"Typ",v:"Statická a dynamická ukážka modelov vetroňov"}]},
+    pozemna:{lat:49.0301010,lng:21.3013500,color:"#3A7EC0",label:"🛡",title:"Pozemná technika",
+      rows:[{k:"Zahŕňa",v:"Leopard 2A4, ShKH Zuzana a ďalšia technika"},{k:"Vstup",v:"Voľný, s doprovodom vojaka"}]},
+    vrtuln:{lat:49.0304140,lng:21.3023000,color:"#3A7EC0",label:"🚁",title:"UH-60M Black Hawk & Mi-17",
+      rows:[{k:"UH-60M Black Hawk",v:"Multifunkčný vrtuľník — nahliadnutie do kokpitu"},{k:"Mi-17",v:"Ťažký transportný vrtuľník — statická ukážka"},{k:"Upozornenie",v:"Dodržiavajte pokyny personálu"}]},
+    zbrane:{lat:49.0306300,lng:21.3019620,color:"#4A6E9E",label:"🔫",title:"Ukážka zbraní a munície",
+      rows:[{k:"Typ",v:"Statická výstava vojenskej výzbroje a munície"},{k:"Vstup",v:"Voľný"}]},
+    wc:{lat:49.0293080,lng:21.3002260,color:"#20A0A0",label:"WC",title:"Toalety",
+      rows:[{k:"Typ",v:"Prenosné toalety na mieste"},{k:"Poplatky",v:"Bezplatné"}]},
+    zdravot:{lat:49.0299490,lng:21.3009100,color:"#D03030",label:"➕",title:"Zdravotnícky stan — prvá pomoc",
+      rows:[{k:"Personál",v:"Zdravotníci na mieste počas celého dňa"},{k:"Núdzová linka",v:"112"}]},
+    oddych:{lat:49.0289050,lng:21.2997250,color:"#409050",label:"🌳",title:"Oddychová zóna",
+      rows:[{k:"Typ",v:"Oddychová zóna pre rodiny"},{k:"Vybavenie",v:"Lavičky, tieň, priestor na oddych"}]},
+  };
+
+  Object.entries(pins).forEach(([key,d])=>{
+    const sz=key==="wc"?24:key==="v3"?32:28;
+    L.marker([d.lat,d.lng],{icon:mkIcon(d.color,d.label,sz)}).addTo(map).on("click",()=>openPin(key));
+  });
+
+  const pStyle={color:"#4CAF50",fillColor:"#4CAF50",fillOpacity:0.22,weight:2};
+  const ttOpts={sticky:true,className:"park-tt",direction:"top"};
+
+  /* ── PARKOVISKO č.1 — Trávnatá plocha pri letisku ── */
+  L.polygon(geo2ll([
+    [21.287327552805436,49.02554472417128],
+    [21.287450428801435,49.02544786935667],
+    [21.291898646010594,49.02710880454964],
+    [21.291763296384318,49.02723169778287]
+  ]),pStyle).bindTooltip("🅿 P1 — Trávnatá plocha pri letisku",ttOpts).addTo(map);
+
+  // Vstupy/výstupy P1
+  const p1entStyle={color:"#4CAF50",fillColor:"#4CAF50",fillOpacity:.9,weight:2};
+  L.circleMarker([49.025555082617046,21.28732774178627],{radius:6,...p1entStyle}).bindTooltip("↳ Vchod P1",{className:"park-tt",direction:"top"}).addTo(map);
+  L.circleMarker([49.026427997612984,21.289651326084993],{radius:6,...p1entStyle}).bindTooltip("↔ Vchod/Východ P1",{className:"park-tt",direction:"top"}).addTo(map);
+  L.circleMarker([49.027228043793485,21.29175356970606],{radius:6,...p1entStyle}).bindTooltip("↲ Východ P1",{className:"park-tt",direction:"top"}).addTo(map);
+
+  /* ── PARKOVISKO č.2 — Pozdĺž štvorprúdovky ── */
+  const p2Style={...pStyle,fillOpacity:0.18};
+  // Segment 1
+  L.polygon(geo2ll([
+    [21.287298750908178,49.02555448846036],
+    [21.294177141909387,49.028141956231394],
+    [21.294119988918737,49.02819261018314]
+  ]),p2Style).bindTooltip("🅿 P2 — Štvorprúdovka (sek.1)",ttOpts).addTo(map);
+  // Segment 2
+  L.polygon(geo2ll([
+    [21.29452911948215,49.02827537683595],
+    [21.301753123686183,49.03102724621621],
+    [21.30168250678929,49.03107871340919],
+    [21.294484755017265,49.028324122317656]
+  ]),p2Style).bindTooltip("🅿 P2 — Štvorprúdovka (sek.2)",ttOpts).addTo(map);
+  // Segment 3
+  L.polygon(geo2ll([
+    [21.30613645470612,49.0326878559687],
+    [21.30608707466925,49.03272751659961],
+    [21.303908487374684,49.03189291347127],
+    [21.303952826082906,49.031849155702446]
+  ]),p2Style).bindTooltip("🅿 P2 — Štvorprúdovka (sek.3)",ttOpts).addTo(map);
+
+  // MHD zastávka
+  L.marker([49.02822519754841,21.29442409028391],{icon:mkIcon("#64B5F6","🚌",32)}).addTo(map).on("click",()=>alert("🚌 Zastávka MHD\nAutobus počas PDD zastavuje priamo tu.\nOdchody: 07:30 – 15:30 každých 30 minút."));
+
+  /* ── PARKOVISKO č.3 — CTPark ── */
+  const p3Style={color:"#4CAF50",fillColor:"#4CAF50",fillOpacity:0.15,weight:2,dashArray:"6 3"};
+  L.polygon(geo2ll([
+    [21.303309673553883,49.03292894415475],
+    [21.302671494340586,49.03329181275748],
+    [21.30064251086543,49.03179456633973],
+    [21.30078008845058,49.03173325912718],
+    [21.30167736599742,49.03240773207017],
+    [21.302159635605392,49.032109735922035]
+  ]),p3Style).bindTooltip("🅿 P3 — CTPark Prešov North",ttOpts).addTo(map);
+  L.polygon(geo2ll([
+    [21.302098134876132,49.03359935790084],
+    [21.298213272597707,49.03572723176862],
+    [21.2944118591536,49.03386775448405],
+    [21.298833712099366,49.03112014507758]
+  ]),p3Style).bindTooltip("🅿 P3 — CTPark Prešov North",ttOpts).addTo(map);
+
+  /* ── Legenda ── */
+  const legend=L.control({position:"bottomleft"});
+  legend.onAdd=function(){
+    const d=L.DomUtil.create("div");
+    d.style.cssText="background:rgba(5,15,30,.92);border:.5px solid rgba(184,161,100,.2);border-radius:3px;padding:8px 11px;font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);line-height:1.95;";
+    d.innerHTML=`<div style="color:rgba(184,161,100,.65);margin-bottom:2px;font-size:8px;">Legenda</div>
+      <div><span style="color:#E07030;font-size:11px;">●</span> Vstup Kapušany</div>
+      <div><span style="color:#E09020;font-size:11px;">●</span> Vstup CP Park</div>
+      <div><span style="color:#666;font-size:11px;">●</span> Hlavná brána ⛔</div>
+      <div><span style="color:#4CAF50;font-size:11px;">■</span> Parkoviská (P1–P3)</div>
+      <div><span style="color:#64B5F6;font-size:11px;">●</span> MHD zastávka</div>
+      <div><span style="color:#3A7EC0;font-size:11px;">●</span> Vojenské ukážky</div>
+      <div><span style="color:#C040A0;font-size:11px;">●</span> Zábava pre deti</div>
+      <div><span style="color:#B8A164;font-size:11px;">●</span> Stánky / Merch</div>
+      <div><span style="color:#20A0A0;font-size:11px;">●</span> Služby</div>`;
+    return d;
+  };
+  legend.addTo(map);
+}
+
+function openPin(key){
+  const d=pins[key];if(!d)return;
+  const panel=document.getElementById("map-detail"),inner=document.getElementById("md-inner");
+  if(active===key){active=null;panel.classList.remove("open");return;}
+  active=key;
+  inner.innerHTML=`<div class="md-hdr"><div class="md-title" style="color:${d.color}">${d.title}</div><button class="md-close" onclick="closePin()">✕</button></div>${d.warn?`<div class="warn-tag">${d.warn}</div>`:""}${d.rows.map(r=>`<div class="md-row"><div class="md-key">${r.k}</div><div class="md-val">${r.v}</div>${r.n?`<div class="md-note">${r.n}</div>`:""}</div>`).join("")}${d.link?`<a class="nav-btn" href="${d.link}" target="_blank"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 7-7 7M15 8H1" stroke="#B8A164" stroke-width="1.5" stroke-linecap="round"/></svg>${d.linkLabel}</a>`:""}`;
+  panel.classList.add("open");
+  setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),60);
+}
+function closePin(){active=null;document.getElementById("map-detail").classList.remove("open");}
+</script>
+</body>
+</html>
