@@ -45,7 +45,7 @@ body{background:var(--navy);color:#fff;font-family:"Barlow",sans-serif;overflow-
 @keyframes heli-glow{0%,100%{filter:brightness(1.05) drop-shadow(0 0 8px rgba(184,161,100,.2))}50%{filter:brightness(1.15) drop-shadow(0 0 14px rgba(184,161,100,.4))}}
 .heli{position:absolute;top:22%;left:0;z-index:3;pointer-events:none;animation:heli-fly 22s linear infinite;animation-delay:2s;}
 .heli-bob{animation:heli-bob .8s ease-in-out infinite;}
-.heli-img{height:100px;display:block;mix-blend-mode:screen;animation:heli-glow 2.5s ease-in-out infinite;filter:brightness(1.1) drop-shadow(0 0 10px rgba(184,161,100,.3));}
+.heli-img{height:100px;display:block;mix-blend-mode:normal;animation:heli-glow 2.5s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(184,161,100,.4)) brightness(1.12) contrast(1.05);background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;}
 
 /* ── SECTIONS ── */
 .sec{padding:2.5rem 1.5rem;border-top:.5px solid rgba(184,161,100,.1);}
